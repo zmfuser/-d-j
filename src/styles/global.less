@@ -1,0 +1,85 @@
+@font-face {
+    font-family: 'pingfang-light'; 
+    src: url('/assets/font/PINGFANG-LIGHT.TTF');
+    font-weight: normal;
+    font-style: normal;
+}
+
+body, p, h1, h2, h3, h4, h5, h6, ul, ol, dl, li, dt, dd {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    cursor: default;
+}
+ 
+html, body {
+    width: 100%;
+    height: 100%;
+    font-size: 14px;
+    font-family: "Microsoft YaHei",sans-serif;
+}
+ 
+input, img {
+    margin: 0;
+    padding: 0;
+    border: 0 none;
+    outline-style: none;
+    vertical-align: bottom; 
+}
+ 
+a, a:active, a:visited {
+    text-decoration: none;
+    color: #ccc;
+}
+ 
+a:hover {
+    color:#333;
+}
+ 
+textarea {
+    border:none;
+    outline: none;
+    resize: none;
+}
+ 
+.clearfix::before, .clearfix::after {
+    content:"";
+    height: 0;
+    line-height: 0;
+    display: block;
+    visibility: none;
+    clear: both;
+}
+ 
+.clearfix {
+    *zoom: 1;
+}
+
+
+.slot-opts-wrap {
+    display: flex;
+    align-items: center;
+    .opt-item {
+        display: flex;
+        align-items: center;
+        min-width: 82px;
+        height: 38px;
+        padding: 11px 10px;
+        margin-right: 14px;
+        border-radius: 6px;
+        cursor: pointer;
+        &:last-child {
+            margin-right: 0;
+        }
+        >.icon {
+            width: 20px;
+            height: 20px;
+            margin-right: 9px;
+            background-color: #d11528;
+        }
+        >.title {
+            font-size: 16px;
+            white-space: nowrap;
+        }
+    }
+}

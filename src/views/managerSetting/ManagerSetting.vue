@@ -1,0 +1,532 @@
+<template>
+  <div class="manager-setting-wrap">
+    <div class="search-wrapper">
+      <Button class="btn" @click="handleAddManager">新增</Button>
+      <el-select class="look-type" v-model="lookType" placeholder="请选择查看类型" @change="handleChangeLookType">
+        <el-option
+          v-for="(item, index) in allLookTypes"
+          :key="index"
+          :value="item.id"
+          :label="item.name">
+        </el-option>
+      </el-select>
+      <el-input
+        class="input-search"
+        placeholder="请输入组织名/人名/电话号码"
+        clearable
+        v-model="searchProp"
+        @clear="handleSearch"
+        @keyup.enter.native="handleSearch">
+        <i slot="prefix" class="el-input__icon el-icon-search"></i>
+      </el-input>
+    </div>
+    <el-table :max-height="tHeight" class="my-table" :border="true" :data="tDataList" :span-method="cellMerge">
+      <el-table-column prop="index" label="序号" width="80" align="center"></el-table-column>
+      <el-table-column prop="orgname" label="组织名称" align="center"></el-table-column>
+      <el-table-column prop="eName" label="管理员人名" width="250" align="center"></el-table-column>
+      <el-table-column prop="account" label="电话号码" width="250" align="center"></el-table-column>
+      <el-table-column v-slot="scope" width="100" label="操作" align="center">
+        <el-button v-show="!buttonHide && scope.row.buttonHide" type="danger" size="small" plain @click="handleDeleteManager(scope.row)">删除</el-button>
+      </el-table-column>
+    </el-table>
+
+    <div class="pager-wrapper">
+      <el-pagination
+        @size-change="handleSizeChange" 
+        @current-change="handleCurrentChange" 
+        :current-page="pData.currentPage" 
+        :page-sizes="pData.pageSizes" 
+        :page-size="pData.pageSize" 
+        layout="total, sizes, prev, pager, next, jumper" 
+        :total="pData.total">
+      </el-pagination>
+    </div>
+
+    <Modal v-model="addManagerShow" title="新增管理员">
+      <el-form ref="addManagerForm" :model="addManagerForm" :rules="rules">
+        <el-form-item label="选择赋权组织" prop="orgName">
+          <el-cascader
+            value="id"
+            label="orgname"
+            children="orgList"
+            ref="cascaderOrg"
+            class="common-width"
+            v-model="addManagerForm.orgName"
+            :options="allOrgOptions"
+            :props="{ checkStrictly: true, expandTrigger: 'hover', value: 'id', label: 'orgname', children: 'orgList' }"
+            clearable
+            :show-all-levels="false">
+          </el-cascader>
+        </el-form-item>
+        <el-form-item label="选择指派人员" prop="manager">
+          <el-select
+            class="common-width"
+            v-model="addManagerForm.manager"
+            multiple
+            filterable
+            remote
+            reserve-keyword
+            placeholder="请输入人名以搜索"
+            :remote-method="handleRemoteSearch"
+            :loading="loading">
+            <el-option
+              v-for="item in allPersonOptions"
+              :key="item.id"
+              :label="item.name"
+              :value="item.id"
+              :disabled="item.disabled">
+              <span style="float: left">{{ item.name }}</span>
+              <span style="float: right; color: #8492a6; font-size: 13px">{{ item.label }}</span>
+            </el-option>
+          </el-select>
+        </el-form-item>
+      </el-form>
+
+      <div class="member-add-footer" slot="footer">
+          <div class="btn bgc-red" @click="handleConfirmAddManager">
+              <span>确认</span>
+          </div>
+          <div class="btn" @click="handleCloseModal">
+              <span>取消</span>
+          </div>
+      </div>
+    </Modal>
+  </div>
+</template>
+
+<script>
+import {mapGetters, mapActions} from 'vuex'
+import { Table, Button, Select, MessageBox, Message } from "element-ui"
+import { setTimeout } from 'timers';
+export default {
+  components: {
+    [Table.name]: Table,
+    [Button.name]: Button,
+    [Select.name]: Select,
+    [MessageBox.name]: MessageBox
+  },
+  data() {
+    return {
+      tHeight: 0, // 表格高度
+      tDataList: [], // 表格数据
+      lookType: null, // 查看类型
+      // allLookTypes: [], // 查看类型选项
+      searchProp: '', // 搜索名称,
+      pData: {
+        total: 0,
+        currentPage: 1,
+        pageSize: 5,
+        pageSizes: [5, 10, 15, 20]
+      },
+      addManagerShow: false, // 新增管理员弹窗
+      addManagerForm: {
+        orgName: '',
+        manager: ''
+      },
+      allOrgOptions: [], // 选择赋权组织的选项
+      allPersonOptions: [], // 选择指派人员的选项
+      loading: false,
+      rules: {
+        orgName: [
+          {required: true, message: '请选择要赋权的组织', trigger: 'blur'}
+        ],
+        manager: [
+          {required: true, message: '请选择要指派的管理员', trigger: 'blur'}
+        ]
+      },
+      spanArr: [],
+      tableData: []
+    }
+  },
+  computed: {
+    isJTManager(){
+      let {roleType} = this.getLoginUserInfo;
+      if(roleType == '1'){
+        return true;
+      }else{
+        return false;
+      }
+    },
+    isDWManager(){
+      let {roleType} = this.getLoginUserInfo;
+      if(roleType == '2'){
+        return true;
+      }else{
+        return false;
+      }
+    },
+    allLookTypes() {
+      let _allLookTypes = [{
+        id: 0,
+        name: '按系统管理员查看'
+      }, {
+        id: 1,
+        name: '按机关管理员查看'
+      }, {
+        id: 2,
+        name: '按矿查看'
+      }, {
+        id: 3,
+        name: '按支部查看'
+      }]
+      if(this.isJTManager) {
+        return _allLookTypes.slice(1)
+      } else if(this.isDWManager) {
+        return _allLookTypes.slice(2)
+      } else {
+        return _allLookTypes
+      }
+    },
+    buttonHide() {
+      let {roleType} = this.getLoginUserInfo;
+      if(roleType === '4') roleType = '0'
+      // console.log(roleType != this.lookType);
+      return roleType == this.lookType
+    },
+    ...mapGetters([
+      'getLoginUserInfo',
+      'getIsManager'
+    ])
+  },
+  mounted() {
+    let _this = this;
+
+    setTimeout(() => {
+      autoReize();
+    }, 0)
+
+    function autoReize() {
+      let wh = +window.innerHeight,
+          tHeight = wh - 366;
+      _this.tHeight = tHeight;
+    }
+
+    this.lookType = this.allLookTypes[0].id;
+
+    this.getPageData();
+
+    this.handleGetAllOrgs()
+  },
+  methods: {
+    // 每页数据条数变化
+    handleSizeChange(size) {
+      this.pData.pageSize = size;
+      this.getPageData();
+    },
+    // 页码变化
+    handleCurrentChange(currentPage) {
+      this.pData.currentPage = currentPage;
+      this.getPageData();
+    },
+    // 查看模式改变
+    handleChangeLookType() {
+      this.pData.currentPage = 1;
+      console.log('test');
+      this.getPageData()
+    },
+    getPageData() {
+      console.log(this.lookType);
+      this.$Spin.show();
+      let params = {
+        currentPage: this.pData.currentPage,
+        pageSize: this.pData.pageSize,
+        type: this.lookType
+      }
+
+      if(this.searchProp) {
+        Object.assign(params, {
+          condition: this.searchProp
+        })
+      }
+
+      this.getAdminByType(params).then(res => {
+        if(res.success) {
+        console.log(res);
+        this.tableData = res.data.rows;
+        this.pData.total = res.data.totalCount;
+
+        let tDataList = [];
+
+        (this.tableData || []).forEach((item, index) => {
+          if(item.authList.length > 0) {
+            item.authList.forEach((val, idx) => {
+              tDataList.push({
+                id: item.id,
+                orgcode: item.orgcode,
+                orgname: item.orgname,
+                index: index + 1,
+                account: val.account,//账号
+                eId: val.eId,//用户id
+                eName: val.eName,//用户姓名
+                authId: val.id,//权限主键
+                level: val.level,//权限级别
+                oId: val.oId,//权限范围--组织
+                buttonHide: true
+              })
+            })
+          } else {
+            tDataList.push({
+              id: item.id,
+              orgcode: item.orgcode,
+              orgname: item.orgname,
+              index: index + 1,
+              account: '',//账号
+              eId: '',//用户id
+              eName: '',//用户姓名
+              authId: '',//权限主键
+              level: '',//权限级别
+              oId: '',//权限范围--组织
+              buttonHide: false
+            })
+          }
+        })
+
+        this.tDataList = tDataList
+        this.getSpanArr(this.tDataList)
+        this.$Spin.hide()
+        } else {
+          console.log('error');
+          this.$Spin.hide();
+          this.$Modal.error({
+            title: '提示信息',
+            content: res.message
+          })
+        }
+      })
+    },
+    getSpanArr(data) {
+      this.spanArr = []　
+      for (var i = 0; i < data.length; i++) {    
+        if (i === 0) {        
+          this.spanArr.push(1);        
+          this.pos = 0    
+        } else {     // 判断当前元素与上一个元素是否相同
+          if (data[i].id === data[i - 1].id) {        
+            this.spanArr[this.pos] += 1;        
+            this.spanArr.push(0);        
+          } else {        
+            this.spanArr.push(1);        
+            this.pos = i;        
+          }    
+        } 
+      }
+    },
+    cellMerge({row, column, rowIndex, columnIndex}) {    
+      if (columnIndex <= 1) {        
+        const _row = this.spanArr[rowIndex];        
+        const _col = _row > 0 ? 1 : 0;        
+        return {            
+          rowspan: _row,
+          colspan: _col        
+        }    
+      }
+    },
+    // 增加管理员
+    handleAddManager() {
+      this.addManagerShow = true;
+    },
+    // 确认新增管理员
+    handleConfirmAddManager() {
+      this.$refs['addManagerForm'].validate((valid) => {
+        if(valid) {
+          this.$Spin.show()
+          console.log(this.addManagerForm);
+          // return false;
+          let params = {
+            oid: this.addManagerForm.orgName[this.addManagerForm.orgName.length - 1],
+            eid: this.addManagerForm.manager.join('|')
+          }
+
+          this.addAuth(params).then(res => {
+            if(res.success) {
+              this.$Spin.hide();
+              this.handleCloseModal();
+              this.getPageData();
+            } else {
+              console.log('error');
+              this.$Spin.hide();
+              this.$Modal.error({
+                title: '提示信息',
+                content: res.message
+              })
+            }
+          })
+        }
+      })
+    },
+    // 关闭新增管理员弹窗
+    handleCloseModal() {
+      this.addManagerShow = false;
+      this.allPersonOptions = []
+      this.$refs['addManagerForm'].resetFields()
+    },
+    // 删除管理员
+    handleDeleteManager(row) {
+      console.log(row);
+      this.$Modal.confirm({
+        title: '提示',
+        content: '是否确认删除此管理员？',
+        loading: true,
+        onOk: () => {
+          let id = row.authId;
+          let params = {
+            id: id
+          }
+          this.delAuth(params).then(res => {
+            if(res.success) {
+              this.$Modal.remove();
+              this.$Message.success('删除成功');
+              this.getPageData();
+            } else {
+              this.$Modal.error({
+                title: '提示信息',
+                content: res.message
+              })
+            }
+          })
+        }
+      })
+      // MessageBox.confirm('是否确认删除此管理员', '提示', {
+      //   confirmButtonText: '确定',
+      //   cancelButtonText: '取消',
+      //   type: 'warning',
+      //   cancelButtonClass: 'btn',
+      //   confirmButtonClass: 'btn bgc-red'
+      // }).then(() => {
+
+      // }).catch(() => {
+
+      // })
+    },
+    // 搜索人名、组织名，电话号码
+    handleSearch() {
+      this.pData.currentPage = 1;
+      console.log('test');
+      this.getPageData()
+    },
+    // 依据不同登录用户，获取所管辖组织的层级结构
+    handleGetAllOrgs() {
+      let info = this.getLoginUserInfo;
+
+      let params = {
+        id: info.oid
+      }
+
+      this.getOrgsRemSome(params).then(res => {
+        console.log(res);
+        if(res.success) {
+          this.allOrgOptions = res.data;
+        } else {
+          console.log('error');
+          this.$Modal.error({
+            title: '提示信息',
+            content: res.message
+          })
+        }
+      })
+    },
+    // 选择指派人员时的远程搜索
+    handleRemoteSearch(query) {
+      if(query !== '') {
+        this.loading = true;
+        this.getEmpByDim({dim: query}).then(res => {
+          (res.data || []).forEach(item => {
+            item.label =  `${item.orgname}     ${item.account}`
+            item.disabled = item.roleType !== '0'
+            item.name = item.roleType !== '0' ? item.name + '（已是管理员）' : item.name
+          })
+
+          this.allPersonOptions = res.data;
+
+          this.loading = false;
+        })
+      } else {
+        this.allPersonOptions = []
+      }
+    },
+    ...mapActions([
+      'getAdminByType',
+      'getEmpByDim',
+      'delAuth',
+      'addAuth',
+      'getOrgsRemSome'
+    ])
+  }
+}
+</script>
+
+<style>
+/* .el-input--suffix .el-input__inner,
+.el-select .el-input.is-focus .el-input__inner,
+.el-select .el-input__inner:focus,
+.el-input__inner:hover,
+.el-input__inner
+{
+  border: 1px solid #d11528 !important;
+} */
+.el-form-item__error {
+  left: 108px;
+}
+.el-button > span {
+  font-size: 14px;
+}
+
+.el-pagination__jump {
+  display: inline-flex !important;
+}
+</style>
+<style lang="less" scoped>
+
+.btn {
+  width: 86px;
+  height: 40px;
+  // border: solid 1px #d11528;
+  font-size: 14px;
+  // color: #d11528;
+}
+.manager-setting-wrap {
+  width: 1100px;
+  margin: 0 auto;
+  background: #fff;
+  padding: 15px 20px;
+  .search-wrapper {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+    .look-type {
+      margin-left: 10px;
+    }
+    .input-search {
+      margin-left: 10px;
+      width: 250px;
+    }
+  }
+  .pager-wrapper {
+    margin-top: 15px;
+    text-align: right;
+  }
+}
+.member-add-footer {
+  display: flex;
+  justify-content: flex-end;
+  .btn {
+    width: 86px;
+    padding: 5px;
+    margin-left: 18px;
+    border-radius: 6px;
+    border: solid 1px #d11528;
+    font-size: 16px;
+    color: #d11528;
+    line-height: 30px;
+    text-align: center;
+    cursor: pointer;
+    &.bgc-red {
+      background-color: #d11528;
+      color: #fff;
+    }
+  }
+}
+.common-width {
+  width: 380px;
+}
+</style>>
