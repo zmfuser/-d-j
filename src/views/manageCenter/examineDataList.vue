@@ -13,10 +13,10 @@
                     </div>
                 </template>
                 
-                <div class="opt-item" @click="gotoPublishPage" v-if="!isDWManager">
+                <!-- <div class="opt-item" @click="gotoPublishPage" v-if="!isDWManager">
                     <div class="icon upload-icon"></div>
                     <div class="title">上传</div>
-                </div>
+                </div> -->
             </div>
         </listHeader>
         <tabsBar :tabsData="tabsData" noMarginBottom defaultBgColor="#ebebeb" @tabChange="tabChange" :isChangeSubNavi="false" tabsType="examine"></tabsBar>

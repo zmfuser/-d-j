@@ -6,6 +6,7 @@ module.exports = {
     devServer: {
         proxy: {
             '/party/*': {
+                // target: 'http://10.72.24.255:8098', 
                 target: 'http://139.9.44.85:8098',
                 ws: true,
                 changeOrigin: true

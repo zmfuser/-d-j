@@ -56,7 +56,6 @@
         },
         created(){
             $eventBus.$on('refreshTabBar', params => {
-                // console.log(params);
                 if(params.isMyDatum){
                     this.isMyDatum = true;
                 } else {
@@ -119,7 +118,6 @@
             },
             tabsInit(tabPara){
                 let index = this.$route.name === 'workPlanList' ? this.getIndex1(this.$route.query.curTab) : (tabPara ? this.getIndex(tabPara.currentTabName) : 0);
-                // console.log(index);
                 let tabDatas = util.deepClone(this.tabsData);
                 if(!this.tabsType){
                     if(this.defaultShowTab){
@@ -140,6 +138,7 @@
                     this.tabsDataCpd = tabDatas;
                 }else{
                     let params = this.buildParams();
+                    console.log("tabs",params)
                     this.getCountByType(params).then(res => {
                         if(res.success){
                             let tabsCount = res.data;
@@ -169,7 +168,6 @@
                 }
             },
             tabChange(tab){
-                // console.log(tab);
                 // $eventBus.$emit('refreshTabBar', {currentTabName: tab.title})
                 if(this.$route.name === 'myOrganization' || this.$route.name === 'partyInfo') {
                     this.$router.push({path: this.$route.name, query: {type: tab.type}});

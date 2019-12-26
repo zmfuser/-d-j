@@ -158,7 +158,7 @@ export default {
       console.log(item);
       if(item.orgcode === 0) { // 如果是集团党委，构造虚拟数据
         let list = [{
-          id: 0,
+          id: 1,
           orgname: '机关党委',
           empList: [...item.empList]
         }]
@@ -173,7 +173,7 @@ export default {
       if(this.activeStep !== 2) return false;
       if(item.orgcode === 0) { // 如果是集团党委，构造虚拟数据
         let list = [{
-          id: 0,
+          id: 1,
           orgname: '机关党委',
           // empList: [...item.empList]
         }]
@@ -225,6 +225,8 @@ export default {
           this.$Message.success('人员移动成功');
           this.$emit('refresh');
           this.handleCloseModal();
+        } else {
+          this.$Message.success('人员移动失败');
         }
       })
     },

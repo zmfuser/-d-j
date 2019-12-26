@@ -3,8 +3,8 @@
     <listHeader listTitle="草稿箱" openMarginBotton></listHeader>
 
     <dataList :actionUrl="actionUrl">
-      <template v-slot:itemOpts={dataItem}>
-        <div class="slot-opts-wrap edit-item-opt"> 
+      <template v-slot:itemOpts="{dataItem}">
+        <div class="slot-opts-wrap edit-item-opt" v-show="splitGetuserinfo()">
           <div class="opt-item" @click="editEssay(dataItem)">
             <div class="title">编辑</div>
           </div>
@@ -18,42 +18,52 @@
 </template>
 
 <script>
-import listHeader from '@/components/common/listHeader'
-import dataList from '@/components/common/dataList'
-import {mapGetters, mapActions} from 'vuex'
+import listHeader from "@/components/common/listHeader";
+import dataList from "@/components/common/dataList";
+import { mapGetters, mapActions } from "vuex";
 export default {
   data() {
     return {
-      actionUrl: 'getDrafts',
-    }
+      actionUrl: "getDrafts"
+    };
+  },
+  computed: {
+    ...mapGetters(["getLoginUserInfo"])
   },
   methods: {
+    splitGetuserinfo() {
+      let { powerCodes } = this.getLoginUserInfo;
+      this.powerCodesList = powerCodes.split(",");
+      var result = this.powerCodesList.includes("info");
+      return result;
+    
+    },
     editEssay(data) {
-      console.log(data)
+      console.log(data);
       // return false;
-      this.changeSubNaviPath('informationPublish');
-      this.$router.push({ name: 'informationPublish', params: { id: data.id }});
+      this.changeSubNaviPath("informationPublish");
+      this.$router.push({
+        name: "informationPublish",
+        params: { id: data.id }
+      });
     },
     deleteEssay(data) {
-      this.delWorkPlan({id: data.id}).then(res => {
-        if(res.success){
-          this.$Message.success('删除成功')
-          $eventBus.$emit('refreshDataList');
+      this.delWorkPlan({ id: data.id }).then(res => {
+        if (res.success) {
+          this.$Message.success("删除成功");
+          $eventBus.$emit("refreshDataList");
         } else {
-          this.$Message.error('删除失败')
+          this.$Message.error("删除失败");
         }
       });
     },
-    ...mapActions([
-        'changeSubNaviPath',
-        'delWorkPlan'
-    ])
+    ...mapActions(["changeSubNaviPath", "delWorkPlan"])
   },
   components: {
     listHeader,
-    dataList,
+    dataList
   }
-}
+};
 </script>
 
 <style lang="less" scoped>

@@ -25,7 +25,7 @@
                     <div class="icon" :class="isCollect?'full':''"></div>
                     <div class="text" :class="isCollect?'black':''">{{ isCollect?'已收藏':'收藏' }}</div>
                 </div>
-                <div class="collect" @click="gotoEdit" v-if="!isNormalEmp && isShowEdit">
+                <div class="collect" @click="gotoEdit" v-if="!isNormalEmp && isShowEdit &&splitGetuserinfo()">
                     <div class="edit-icon"></div>
                     <div class="bg-text">变更</div>
                 </div>
@@ -170,6 +170,12 @@
             this.loadDetailData();
         },
         methods: {
+             splitGetuserinfo(){
+                let {powerCodes}=this.getLoginUserInfo;
+                this.powerCodesList=powerCodes.split(",")
+                var result=this.powerCodesList.includes("info")
+                return result
+            },
             collect() {
                 if(this.isCollect){
                     let params = {
@@ -236,7 +242,6 @@
                 // let {params} = this.$route;
                 let params= {}
                 let {query} = this.$route;
-                console.log(query);
                 // query.isViewDeptData = query.isViewDeptData === 'true' ? true : false;
                 this.fromIndex = (query.from && query.from === 'index') ? true : false;
 

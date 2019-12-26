@@ -51,7 +51,7 @@
             userType() {
                 console.log(this.getLoginUserInfo);
                 let {roleType, oName} = this.getLoginUserInfo;
-                
+                console.log("roleType是",roleType)
                 switch(roleType) {
                     case '0':
                         return '普通用户';
@@ -84,7 +84,7 @@
             }
         },
         created() {
-
+            console.log("deng",this.getLoginUserInfo)
         },
         components: {
             cusNavigator

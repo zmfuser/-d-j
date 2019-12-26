@@ -136,19 +136,16 @@
         created(){
             $eventBus.$on('refreshDataList', () => {
                 
-                console.log('一次');
                 this.getListData();
                 
             });
             $eventBus.$on('queryFilterData', params => {
                 this.filterFormInfo = params.filterFormInfo;
-                console.log('2次');
                 this.getListData('filter');
             });
         },
         mounted(){
             this.$nextTick(() => {
-                console.log('3次');
                 this.getListData();
             });
         },
@@ -169,13 +166,10 @@
                 }
             },
             getListData(type = ''){
-                console.log('进入');
                 this.checkedItems = [];
                 this.$Spin.show();
                 if(this.actionUrl){
-                    // console.log(this.actionUrl)
                     let params = util.deepClone(this.actionParams);
-                    console.log(params);
                     if(this.actionUrl == 'getMyOrgListByType' && typeof params.account == 'undefined'){
                         params.account = this.getLoginUserInfo.account;
                     }
@@ -203,7 +197,6 @@
                             accounts: []
                         };
                     }
-                    console.log('test');
                     this.$store.dispatch(this.actionUrl, params).then(res => {
                         if(res.success){
                             if(this.countMapper){
@@ -240,7 +233,6 @@
             },
             pageChange(params){
                 this.currentPage = params.currentPage;
-                console.log('4次');
                 this.getListData();
             },
             translateDate(date, fmt = 'yyyy-MM-dd'){
@@ -280,12 +272,10 @@
         watch: {
             actionUrl(){
                 this.currentPage = 1;
-                console.log('5次');
                 this.getListData();
             },
             actionParams: {
                 handler(){
-                    console.log('6次');
                     this.currentPage = 1;
                     this.getListData();
                 },

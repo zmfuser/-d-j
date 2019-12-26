@@ -88,10 +88,6 @@ export default new Router({
         path: '/statistics',
         name: 'statistics',
         component: () => import('./views/manageCenter/statistics.vue')
-    }, {
-        path: '/test',
-        name: 'test',
-        component: () => import('./views/test/test.vue')
     }
   ]
 })

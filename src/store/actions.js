@@ -18,6 +18,7 @@ const actions = {
         commit(types.SET_DATALIST_DEFAULTTAB, defaultTab);
     },
     setLoginUserInfoForLocal({commit, state}, userInfo){
+       
         commit(types.SET_LOGIN_USERINFO, userInfo);
     },
     getUserInfoByAccount({commit, state}, params){
@@ -34,6 +35,7 @@ const actions = {
         });
     },
     getLoginUserData({commit, state}, params){
+        
         return new Promise((resolve) => {
             $axios.get(`/party/reg/getInfoByAccount`).then((response) => {
                 if(response.data.success){
@@ -106,6 +108,17 @@ const actions = {
                 query.push(`currentPage=${params.currentPage}`);
             }
             $axios.get(`/party/essay/getMyOrgList${'?'+query.join('&')}`).then(response => {
+                resolve(response.data);
+            }).catch(error => {
+                reject(error);
+            })
+        });
+    },
+    getOrganizationList({commit, state}, params){
+        return new Promise((resolve, reject) => {
+            
+            
+            $axios.get(`/party/org/getDeptByAdd${'?type='+params.type}`).then(response => {
                 resolve(response.data);
             }).catch(error => {
                 reject(error);
@@ -216,6 +229,15 @@ const actions = {
     attachDelete({commit, state}, params){
         return new Promise((resolve, reject) => {
             $axios.post(`/party/file/delFile`, params).then(response => {
+                resolve(response.data);
+            }).catch(error => {
+                reject(error);
+            })
+        });
+    },
+    getPowerList({commit, state}, params){
+        return new Promise((resolve, reject) => {
+            $axios.get(`/party/power/getOwnedOrg`, params).then(response => {
                 resolve(response.data);
             }).catch(error => {
                 reject(error);
@@ -377,7 +399,7 @@ const actions = {
     // 获取管理员表格数据
     getAdminByType({commit, state}, params){
         return new Promise((resolve, reject) => {
-            $axios.post(`/party/org/getAdminByType`, params).then(response => {
+            $axios.post(`/party/power/getAdminByType`, params).then(response => {
                 resolve(response.data)
             }).catch(error => {
                 reject(error)
@@ -387,7 +409,7 @@ const actions = {
     // 删除管理员
     delAuth({commit, state}, params){
         return new Promise((resolve, reject) => {
-            $axios.post(`/party/org/delAuth`, params).then(response => {
+            $axios.post(`/party/power/delAuth`, params).then(response => {
                 resolve(response.data)
             }).catch(error => {
                 reject(error)
@@ -397,7 +419,17 @@ const actions = {
     // 人名模糊搜索
     getEmpByDim({commit, state}, params){
         return new Promise((resolve, reject) => {
-            $axios.post(`/party/emp/getEmpByDim`, params).then(response => {
+            $axios.post(`/party/power/getEmpByDim`, params).then(response => {
+                resolve(response.data)
+            }).catch(error => {
+                reject(error)
+            })
+        })
+    },
+    // 获取权限
+    getAllPower({commit, state}, params){
+        return new Promise((resolve, reject) => {
+            $axios.get(`/party/power/getAll`, params).then(response => {
                 resolve(response.data)
             }).catch(error => {
                 reject(error)
@@ -407,7 +439,7 @@ const actions = {
     // 添加管理员
     addAuth({commit, state}, params){
         return new Promise((resolve, reject) => {
-            $axios.post(`/party/org/addAuth`, params).then(response => {
+            $axios.post(`/party/power/addAuth`, params).then(response => {
                 resolve(response.data)
             }).catch(error => {
                 reject(error)

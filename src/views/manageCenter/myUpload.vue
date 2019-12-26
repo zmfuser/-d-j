@@ -3,14 +3,25 @@
     <listHeader listTitle="我的上传" openMarginBotton>
       <div slot="headOpts">
         <el-select v-model="sourceType" @change="changeSourceType" placeholder="请选择上传类型" clearable>
-          <el-option v-for="(item, index) in allSourceType" :key="index" :value="item.id" :label="item.name"></el-option>
+          <el-option
+            v-for="(item, index) in allSourceType"
+            :key="index"
+            :value="item.id"
+            :label="item.name"
+          ></el-option>
         </el-select>
       </div>
     </listHeader>
 
     <dataList :actionUrl="actionUrl" :actionParams="actionParams">
-      <template v-slot:itemOpts={dataItem}>
-        <div class="slot-opts-wrap edit-item-opt" v-if="dataItem.approve !== 0 && dataItem.isWorkPlan === 0 || (isJTManager && dataItem.isWorkPlan === 0) "> 
+      <template v-slot:itemOpts="{dataItem}">
+        <div
+          class="slot-opts-wrap edit-item-opt"
+          v-if="dataItem.approve !== 0 && dataItem.isWorkPlan === 0 || (isJTManager && dataItem.isWorkPlan === 0) "
+        >
+          <div
+            :class="dataItem.approve_ch == '待审核' ? 'status':(dataItem.approve_ch== '未通过' ? 'status_reject':'status_resove' ) "
+          >{{dataItem.approve_ch== "待审核" ? (dataItem.approveLevel== 3 ?"待党委审核中..." : (dataItem.approveLevel== 2 ?"待机关审核中..." : "")) : dataItem.approve_ch}}</div>
           <div class="opt-item" @click="revokeToDraft(dataItem)">
             <div class="icon revoke-icon"></div>
             <div class="title">撤回</div>
@@ -22,9 +33,9 @@
 </template>
 
 <script>
-import {mapGetters, mapActions} from 'vuex'
-import listHeader from '@/components/common/listHeader'
-import dataList from '@/components/common/dataList'
+import { mapGetters, mapActions } from "vuex";
+import listHeader from "@/components/common/listHeader";
+import dataList from "@/components/common/dataList";
 export default {
   components: {
     listHeader,
@@ -32,68 +43,68 @@ export default {
   },
   data() {
     return {
-      actionUrl: 'getMyUpload',
+      actionUrl: "getMyUpload",
       actionParams: {
-        action: 'getMyUpload',
-        channelCode: ''
+        action: "getMyUpload",
+        channelCode: ""
       },
       sourceType: null,
-      allSourceType: [{
-        id: 0,
-        name: '党建信息'
-      }, {
-        id: 1,
-        name: '我的组织'
-      }, {
-        id: 2,
-        name: '工作计划'
-      }]
-    }
+      allSourceType: [
+        {
+          id: 0,
+          name: "党建信息"
+        },
+        {
+          id: 1,
+          name: "我的组织"
+        },
+        {
+          id: 2,
+          name: "工作计划"
+        }
+      ]
+    };
   },
   computed: {
-    isJTManager(){
-        let {roleType} = this.getLoginUserInfo;
-        if(roleType == '1'){
-            return true;
-        }else{
-            return false;
-        }
+    isJTManager() {
+      let { roleType } = this.getLoginUserInfo;
+      if (roleType == "1") {
+        return true;
+      } else {
+        return false;
+      }
     },
-    ...mapGetters([
-        'getLoginUserInfo'
-    ])
+    ...mapGetters(["getLoginUserInfo"])
   },
   methods: {
     changeSourceType() {
-      this.actionParams.channelCode = this.sourceType
+      this.actionParams.channelCode = this.sourceType;
     },
     // 撤回为草稿状态
     revokeToDraft(dataItem) {
-      console.log(dataItem)
+      console.log(dataItem);
 
       let params = {
         id: dataItem.id,
         isDraft: 1
-      }
+      };
 
       this.essayChange(params).then(res => {
-        if(res.success) {
-          $eventBus.$emit('refreshDataList');
+        if (res.success) {
+          $eventBus.$emit("refreshDataList");
           // $eventBus.$emit('refreshTabBar', {
           //     isMyDatum: this.isDWManager ? true : false,
           //     currentTabName: this.curTabName
           // });
-          this.$Message.success('撤回成功');
+          this.$Message.success("撤回成功");
         } else {
-          this.$Message.error('撤回失败');
+          this.$Message.error("撤回失败");
         }
-      })
+      });
     },
-    ...mapActions([
-      'essayChange'
-    ])
+    ...mapActions(["essayChange"])
   }
-}
+};
 </script>
 
 <style lang="less" scoped>
@@ -102,6 +113,24 @@ export default {
   margin: 0 auto;
 }
 .edit-item-opt {
+  .status {
+    font-size: 18px;
+    color: #e69617;
+    line-height: 1.5;
+    margin-right: 20px;
+  }
+  .status_reject {
+    font-size: 18px;
+    color: #d11528;
+    line-height: 1.5;
+    margin-right: 20px;
+  }
+  .status_resove {
+    font-size: 18px;
+    color: #999999;
+    line-height: 1.5;
+    margin-right: 20px;
+  }
   .opt-item {
     background-color: #ffffff;
     border-radius: 6px;
@@ -114,7 +143,7 @@ export default {
     width: 18px;
     height: 18px;
     &.revoke-icon {
-      background: url('~@/images/my_icon_cehui.png') no-repeat;
+      background: url("~@/images/my_icon_cehui.png") no-repeat;
       background-size: 100% 100%;
     }
   }

@@ -28,11 +28,10 @@
                     <div class="approve-btn" @click="approve(1)" v-show="!isZBManager">
                         <span class="text">不通过</span>
                     </div>
-                    <div class="approve-btn" @click="gotoEditPage" v-show="!isZBManager">
-                        <span class="text">编辑</span>
-                    </div>
+                    
                 </template>
-                <template v-else-if="approveStatus.statusText == '未通过' && isViewMyData">
+                <template v-else-if="approveStatus.statusText == '未通过' ">
+                   
                     <div class="approve-btn" @click="gotoEditPage">
                         <span class="text">编辑</span>
                     </div>
@@ -133,6 +132,7 @@
             ])
         },
         methods: {
+        
             approve(approveType){
                 let params = {
                     id: this.content.id,
